@@ -8,18 +8,19 @@ const Sidebar = React.forwardRef<HTMLInputElement, SidebarProps>(
     ({ className, ...props }, ref) => {
         return (
             <div className="flex flex-col w-1/22 border border-[var(--color-sidebarBorderColor)]">
-                <div className="bg-yellow-200 h-3/12 text-center content-center">Logo</div>
-                <div className="grid grid-row-15 h-full">
-                    <div className="row-span-3"></div>
-                    <div className="content-center justify-items-center border-t-2 border-b-2 border-[var(--color-sidebarBorderColor)]"> <Icon name="home" size={30}/></div>
-                    <div className="content-center justify-items-center"> <Icon name="brands" size={33}/></div>
-                    <div className="content-center justify-items-center border-t-2 border-b-2 border-[var(--color-sidebarBorderColor)]"> <Icon name="models" size={25}/></div>
-                    <div className="content-center justify-items-center"> <Icon name="fuel" size={23}/></div>
-                    <div className="content-center justify-items-center border-t-2 border-b-2 border-[var(--color-sidebarBorderColor)]" > <Icon name="vehicles" size={33}/></div>
-                    <div className="content-center justify-items-center border-b-2 border-[var(--color-sidebarBorderColor)]" > <Icon name="users" size={28}/></div>
-                    <div className="row-span-6"></div>
+                <div className="h-1/8 text-center content-center">
+                    <div className="bg-be1 bg-auto md:bg-contain bg-no-repeat h-3/4 content-center jusitify-items-center"></div>
                 </div>
-                <div className="bg-red-200 w-full h-1/8 content-center justify-items-center border-t-2 border-b-2 border-[var(--color-sidebarBorderColor)]"><Icon name="logout" size={25}/></div>
+                <div className="grid grid-row-20 h-full">
+                        <div className="content-center justify-items-center border-t-2 border-b-2 border-[var(--color-sidebarBorderColor)] hover:bg-[var(--color-hoverColor)] cursor-pointer"> <Icon name="home" size={25} /></div>
+                        <div className="content-center justify-items-center hover:bg-[var(--color-hoverColor)] cursor-pointer"> <Icon name="brands" size={28} /></div>
+                        <div className="content-center justify-items-center border-t-2 border-b-2 border-[var(--color-sidebarBorderColor)] hover:bg-[var(--color-hoverColor)] cursor-pointer"> <Icon name="models" size={20} /></div>
+                        <div className="content-center justify-items-center hover:bg-[var(--color-hoverColor)] cursor-pointer"> <Icon name="fuel" size={18} /></div>
+                        <div className="content-center justify-items-center border-t-2 border-b-2 border-[var(--color-sidebarBorderColor)] hover:bg-[var(--color-hoverColor)] cursor-pointer" > <Icon name="vehicles" size={28} /></div>
+                        <div className="content-center justify-items-center border-b-2 border-[var(--color-sidebarBorderColor)] hover:bg-[var(--color-hoverColor)] cursor-pointer" > <Icon name="users" size={23} /></div>
+                        <div className="row-span-14"></div>
+                </div>
+                <div className="w-full h-1/8 content-center justify-items-center border-t-2 border-b-2 border-[var(--color-sidebarBorderColor)] hover:bg-red-200 cursor-pointer"><Icon name="logout" size={20} /></div>
             </div>
         );
     }

@@ -6,7 +6,7 @@ export interface HeaderProps
 const Header = React.forwardRef<HTMLInputElement, HeaderProps>(
     ({ className, ...props }, ref) => {
         return (
-                <header className="bg-green-200 h-2/12 w-full content-center pl-12"> Informações de Usuários</header>
+                <header className="h-3/29 w-full content-center pl-12 text-xl"> Informações de Usuários</header>
         );
     }
 );
