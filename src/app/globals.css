@@ -6,6 +6,7 @@
   --sidebarBorderColor: #D2D2D2;
   --hoverColor: #C2D9FF;
   --buttomColor: #1E3A8A;
+  --theadColor: #D0D0D0;
 }
 
 @theme inline {
@@ -14,6 +15,7 @@
   --color-sidebarBorderColor: var(--sidebarBorderColor);
   --color-hoverColor: var(--hoverColor);
   --color-buttomColor: var(--buttomColor);
+  --color-theadColor: var(--theadColor);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
