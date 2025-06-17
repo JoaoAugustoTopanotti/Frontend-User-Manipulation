@@ -5,11 +5,12 @@ import { IUser } from "@/app/interface/IUsers";
 import { MdModeEdit } from "react-icons/md";
 import { MdDelete } from "react-icons/md";
 import { useEffect, useState } from "react";
+import UserModal from "@/app/components/userModal";
+import { useUpdateUser } from "@/app/hooks/useUpdateUsers";
 
-import { http } from "@/lib/http-common";
-
-function ListUsers({ users }: { users: IUser[] }) {
-  const [isModalEditOpen, setIsModalEditOpen] = useState(false)
+function ListUsers({ users, refetch }: { users: IUser[], refetch: () => Promise<any>;}) {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isEdit, setIsEdit] = useState(false);
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null)
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -17,39 +18,28 @@ function ListUsers({ users }: { users: IUser[] }) {
   const [birthDate, setBirthDate] = useState("");
   const [nationalId, setNationalId] = useState("");
 
-  const handleUpdate = async () => {
-    const userIdSystem = "dab3e7ab-9569-48c7-ae2c-52ef2596b251";
+  const handleOpenModal = (user: IUser, editMode: boolean) => {
+    setSelectedUser(user);
+    setIsEdit(editMode);
+    setIsModalOpen(true);
+  };
 
-    if (!selectedUser) return;
+  const handleCloseModal = () => {
+    setSelectedUser(null);
+    setIsModalOpen(false);
+  };
 
-    const updatedUser = {
-      name,
-      email,
-      contact,
-      birthDate,
-      nationalId,
-    }
-    try {
+  const { handleSaveUser } = useUpdateUser();
 
+  const handleSave = async (updatedUser: IUser) => {
+    await handleSaveUser(updatedUser.id, updatedUser);
+    setIsModalOpen(false);
+    await refetch();
+  };
 
-      const token = localStorage.getItem('token');
-      const updatedById = localStorage.getItem('updatedById');
-
-      const response = await http.put(`/users/update/${selectedUser.id}`, updatedUser, {
-        headers: {
-          'Content-Type': 'application/json',
-          'token': token,
-          'updatedById': updatedById
-        }
-      })
-      console.log("Usuário atualizado:", response.data);
-
-    } catch (err: any) {
-      console.error("Erro ao atualizar:", err);
-      console.log("Detalhes do erro:", err?.response?.data || err.message);
-    }
+  const handleEdit = () => {
+    setIsEdit(true);  
   }
-
 
   useEffect(() => {
     if (selectedUser) {
@@ -78,16 +68,16 @@ function ListUsers({ users }: { users: IUser[] }) {
             </thead>
             <tbody className="w-full">
               {users.map(user => (
-                <tr key={user.id}>
+                <tr className="cursor-pointer" key={user.id} onClick={() => handleOpenModal(user, false)}>
                   <td className="px-2 py-3">{user.name}</td>
                   <td className="px-2 py-3">{user.email}</td>
                   <td className="px-2 py-3">{user.birthDate}</td>
                   <td className="px-2 py-3">{user.contact}</td>
                   <td className="px-2 py-3">{user.nationalId}</td>
                   <td className="py-3 flex justify-start">
-                    <button onClick={() => {
-                      setSelectedUser(user)
-                      setIsModalEditOpen(true)
+                    <button className="cursor-pointer" onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenModal(user, true);
                     }}>
                       <MdModeEdit size="30" />
                     </button>
@@ -100,59 +90,15 @@ function ListUsers({ users }: { users: IUser[] }) {
             </tbody>
           </table>
         </div>
+        <UserModal
+          user={selectedUser}
+          isEdit={isEdit}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onSave={handleSave}
+          onEnableEdit={handleEdit}
+        />
       </div>
-
-      {isModalEditOpen && (
-        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-3xl">
-            <h2 className="text-2xl font-bold mb-4">Editar Usuário</h2>
-            <div className="grid grid-cols-2 grid-rows-3 gap-4 h-auto">
-              <div>
-                <label htmlFor="Nome" className="block mb-2 text-shadow-lg font-medium">Nome:</label>
-                <input type="text" id="name" className="w-full rounded-md p-2.5 border border-gray-300 focus:outline-none size-max"
-                  placeholder={selectedUser?.name} value={name} onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-              <div>
-                <label htmlFor="Contato" className="block mb-2 text-shadow-lg font-medium">Contato:</label>
-                <input type="text" id="contact" className="w-full rounded-md p-2.5 border border-gray-300 focus:outline-none"
-                  placeholder={selectedUser?.contact} value={contact} onChange={(e) => setContact(e.target.value)}
-                />
-              </div>
-              <div>
-                <label htmlFor="Email" className="block mb-2 text-shadow-lg font-medium">Email:</label>
-                <input type="text" id="email" className="w-full rounded-md p-2.5 border border-gray-300 focus:outline-none"
-                  placeholder={selectedUser?.email} value={email} onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div>
-                <label htmlFor="Nascimento" className="block mb-2 text-shadow-lg font-medium">Nascimento:</label>
-                <input type="text" id="birthDate" className="w-full rounded-md p-2.5 border border-gray-300 focus:outline-none"
-                  placeholder={selectedUser?.birthDate} value={birthDate} onChange={(e) => setBirthDate(e.target.value)}
-                />
-              </div>
-              <div>
-                <label htmlFor="CPF" className="block mb-2 text-shadow-lg font-medium">CPF:</label>
-                <input type="text" id="nationalId" className="w-full rounded-md p-2.5 border border-gray-300 focus:outline-none"
-                  placeholder={selectedUser?.nationalId} value={nationalId} onChange={(e) => setNationalId(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="text-end space-x-4">
-              <button
-                className="mt-4 bg-[var(--color-theadColor)] font-medium px-4 py-2 rounded "
-                onClick={() => setIsModalEditOpen(false)}>
-                Voltar
-              </button>
-              <button
-                className="mt-4 bg-[var(--color-buttomColor)] text-white px-4 py-2 rounded "
-                onClick={() => { handleUpdate() }}>
-                Salvar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }
@@ -165,7 +111,7 @@ function UsersListWrapper() {
 
   return (
     <>
-      <ListUsers users={users ?? []} />
+      <ListUsers users={users ?? []} refetch={refetch}/>
       <div className="h-1/12 w-4/5 items-center flex justify-end">
         <button className="h-1/2 w-1/7 bg-[var(--color-buttomColor)] rounded-lg text-white font-medium">
           Cadastrar Usuário

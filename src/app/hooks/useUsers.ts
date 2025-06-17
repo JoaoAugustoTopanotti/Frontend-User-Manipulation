@@ -22,5 +22,5 @@ export const useUsers = () => {
         isLoading,
         error,
         refetch,
-    }
+    };
 }
