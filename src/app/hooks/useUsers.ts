@@ -11,6 +11,7 @@ export const useUsers = () => {
         data: users,
         isLoading,
         error,
+        refetch,
     } = useQuery<IUser[], Error>({
         queryKey: ['users'],
         queryFn: getUsers,
@@ -20,5 +21,6 @@ export const useUsers = () => {
         users,
         isLoading,
         error,
+        refetch,
     }
 }
