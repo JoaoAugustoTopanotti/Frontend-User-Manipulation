@@ -6,23 +6,22 @@ import { MdModeEdit } from "react-icons/md";
 import { MdDelete } from "react-icons/md";
 import { useEffect, useState } from "react";
 import UserModal from "@/app/components/userModal";
-import { useUpdateUser } from "@/app/hooks/useUpdateUsers";
 
 function ListUsers({ users, onOpenModal }: { users: IUser[], onOpenModal: (user: IUser, editMode: boolean) => void; }) {
 
   return (
     <>
-      <div className="flex flex-col pl-6 w-full h-1/2">
-        <div className=" border border-[var(--color-sidebarBorderColor)] w-4/5 h-full relative shadow-md">
-          <table className="w-full h-full">
-            <thead className="bg-[var(--color-theadColor)] text-left h-1/6">
+      <div className="w-full flex justify-center items-start h-full">
+        <div className="w-5/6 max-h-[600px] overflow-hidden border border-[var(--color-sidebarBorderColor)] shadow-md">
+          <table className="w-full table-auto">
+            <thead className="bg-[var(--color-theadColor)] text-left">
               <tr>
-                <th className="px-2">Nome</th>
-                <th className="px-2">Email</th>
-                <th className="px-2">Data de Nascimento</th>
-                <th className="px-2">Telefone</th>
-                <th className="px-2">CPF</th>
-                <th className="px-2">Ações</th>
+                <th className="px-2 py-4">Nome</th>
+                <th className="px-2 py-4">Email</th>
+                <th className="px-2 py-4">Data de Nascimento</th>
+                <th className="px-2 py-4">Telefone</th>
+                <th className="px-2 py-4">CPF</th>
+                <th className="px-2 py-4">Ações</th>
               </tr>
             </thead>
             <tbody className="w-full">
@@ -71,10 +70,15 @@ function UsersListWrapper() {
     setIsModalOpen(false);
   };
 
-  const { handleSaveUser } = useUpdateUser();
+  const { handleSaveUser } = useUsers();
 
   const handleSave = async (updatedUser: IUser) => {
-    await handleSaveUser(updatedUser.id, updatedUser);
+    if (updatedUser.id) {
+      await handleSaveUser(updatedUser.id, updatedUser);
+    } else {
+      console.error("ID do usuário está indefinido");
+    }
+
     setIsModalOpen(false);
     await refetch();
   };
@@ -87,11 +91,8 @@ function UsersListWrapper() {
 
   return (
     <>
-      <ListUsers users={users ?? []}
-        onOpenModal={handleOpenModal}
-        />
-      <div className="h-1/12 w-4/5 items-center flex justify-end">
-        <button className="h-1/2 w-1/7 bg-[var(--color-buttomColor)] rounded-lg text-white font-medium" onClick={ () => handleOpenModal(null, true)}>
+      <div className="h-1/12 w-9/10 items-top flex justify-end">
+        <button className="h-1/2 w-1/7 bg-[var(--color-buttomColor)] rounded-lg text-white font-medium" onClick={() => handleOpenModal(null, true)}>
           Cadastrar Usuário
         </button>
         <UserModal
@@ -103,6 +104,10 @@ function UsersListWrapper() {
           onEnableEdit={handleEdit}
         />
       </div>
+      <ListUsers users={users ?? []}
+        onOpenModal={handleOpenModal}
+      />
+
     </>
   );
 }

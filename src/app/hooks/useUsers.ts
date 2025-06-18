@@ -1,3 +1,4 @@
+// hooks/useUsers.ts
 "use client";
 
 import { http } from "@/lib/http-common";
@@ -5,7 +6,6 @@ import { IUser } from "../interface/IUsers";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { AxiosResponse } from "axios";
-import { ICreateUser } from "../interface/IUserCreate";
 
 export const useUsers = () => {
     const getUsers = async (): Promise<IUser[]> => {
@@ -22,19 +22,19 @@ export const useUsers = () => {
         queryKey: ['users'],
         queryFn: getUsers,
     });
+
     const updatedById = localStorage.getItem('updatedById');
-    const createUserMutation = useMutation<AxiosResponse<any>, Error, ICreateUser>({
+
+    const createUserMutation = useMutation<AxiosResponse<any>, Error, IUser>({
         mutationFn: (newUser) =>
             http.post(
                 '/users/create',
-                {
-                    ...newUser,
-                },
+                { ...newUser },
                 {
                     headers: {
                         'Content-Type': 'application/json',
-                        token: newUser.token || '', // envia o token no header
-                        user: updatedById || ''
+                        token: newUser.token || '',
+                        user: updatedById || '',
                     },
                 }
             ),
@@ -46,6 +46,29 @@ export const useUsers = () => {
         },
     });
 
+    const handleSaveUser = async (userId: string, updatedUser: IUser) => {
+        if (!userId) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const updatedById = localStorage.getItem('updatedById');
+
+            const response = await http.put(`/users/update/${userId}`, updatedUser, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    token: token ?? '',
+                    updatedById: updatedById ?? ''
+                }
+            });
+
+            console.log("Usuário atualizado:", response.data);
+            return response.data;
+        } catch (err: any) {
+            console.error("Erro ao atualizar:", err);
+            throw err;
+        }
+    };
+
     return {
         users,
         isLoading,
@@ -53,5 +76,6 @@ export const useUsers = () => {
         refetch,
         createUser: createUserMutation.mutateAsync,
         createUserLoading: createUserMutation.status === "pending",
+        handleSaveUser, // exporta a função de update também
     };
 };

@@ -1,7 +1,6 @@
 "use client"
 import { useEffect, useState } from "react";
 import { IUser } from "../interface/IUsers";
-import { useUpdateUser } from "../hooks/useUpdateUsers";
 import { useUsers } from "../hooks/useUsers";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -22,6 +21,8 @@ export default function UserModal({ user = null, isEdit = true, isOpen, onClose,
     const [nationalId, setNationalId] = useState(user?.nationalId || "");
     const [password, setPassword] = useState("");
     const { createUser, createUserLoading } = useUsers();
+    const { handleSaveUser } = useUsers();
+
 
     useEffect(() => {
         if (isOpen && !user) {
@@ -54,8 +55,6 @@ export default function UserModal({ user = null, isEdit = true, isOpen, onClose,
         const isoWithTime = new Date(dateOnly).toISOString(); // Transforma para ISO completo
         setBirthDate(isoWithTime); // Salva a data no formato correto para o backend
     };
-
-    const { handleSaveUser } = useUpdateUser();
 
     const handleSave = async () => {
         if (!user) return
