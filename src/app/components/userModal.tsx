@@ -2,39 +2,63 @@
 import { useEffect, useState } from "react";
 import { IUser } from "../interface/IUsers";
 import { useUpdateUser } from "../hooks/useUpdateUsers";
+import { useUsers } from "../hooks/useUsers";
+import { v4 as uuidv4 } from 'uuid';
 
 interface Props {
-    user: IUser | null;
-    isEdit: boolean;
+    user?: IUser | null;
+    isEdit?: boolean;
     isOpen: boolean;
     onClose: () => void;
     onSave: (updatedUser: IUser) => void;
     onEnableEdit: () => void;
 }
 
-export default function UserModal({ user, isEdit, isOpen, onClose, onSave, onEnableEdit }: Props) {
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [contact, setContact] = useState("");
-    const [birthDate, setBirthDate] = useState("");
-    const [nationalId, setNationalId] = useState("");
+export default function UserModal({ user = null, isEdit = true, isOpen, onClose, onSave, onEnableEdit }: Props) {
+    const [name, setName] = useState(user?.name || "");
+    const [email, setEmail] = useState(user?.email || "");
+    const [contact, setContact] = useState(user?.contact || "");
+    const [birthDate, setBirthDate] = useState(user?.birthDate || "");
+    const [nationalId, setNationalId] = useState(user?.nationalId || "");
+    const [password, setPassword] = useState("");
+    const { createUser, createUserLoading } = useUsers();
 
     useEffect(() => {
-        if (user) {
-            setName(user.name);
-            setEmail(user.email);
-            setContact(user.contact ?? "");
-            setBirthDate(user.birthDate ?? "");
-            setNationalId(user.nationalId ?? "");
+        if (isOpen && !user) {
+            // Cadastro novo: limpa campos
+            setName("");
+            setEmail("");
+            setBirthDate("");
+            setContact("");
+            setNationalId("");
+            setPassword("")
+        } else if (isOpen && user) {
+            // Edição: preenche campos com dados do usuário
+            setName(user.name || "");
+            setEmail(user.email || "");
+            setBirthDate(user.birthDate || "");
+            setContact(user.contact || "");
+            setNationalId(user.nationalId || "");
         }
-    }, [user]);
+    }, [isOpen, user]);
 
-    if (!isOpen || !user) return null;
+
+    if (!isOpen) return null;
+
+    const formatDateForInput = (isoString: string) => {
+        return isoString ? isoString.split('T')[0] : '';
+    };
+
+    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const dateOnly = e.target.value; // Ex: "2025-06-16"
+        const isoWithTime = new Date(dateOnly).toISOString(); // Transforma para ISO completo
+        setBirthDate(isoWithTime); // Salva a data no formato correto para o backend
+    };
 
     const { handleSaveUser } = useUpdateUser();
 
     const handleSave = async () => {
-        if(!user) return 
+        if (!user) return
         const updatedUser: IUser = {
             ...user,
             name,
@@ -48,10 +72,26 @@ export default function UserModal({ user, isEdit, isOpen, onClose, onSave, onEna
         onClose()
     };
 
+    const handleCreate = async () => {
+        const token = uuidv4();
+        console.log(token)
+        await createUser({
+            name,
+            email,
+            birthDate,
+            contact,
+            nationalId,
+            password,
+            token,
+        });
+
+        onClose(); // fecha o modal
+    }
+
     return (
         <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-3xl">
-                <h2 className="text-2xl font-bold mb-4">{isEdit ? "Editar Usuário" : "Visualizar Usuário"}</h2>
+                <h2 className="text-2xl font-bold mb-4">{!user ? "Cadastrar Usuário" : isEdit ? "Editar Usuário" : "Visualizar Usuário"}</h2>
                 <div className="grid grid-cols-2 grid-rows-3 gap-4 h-auto">
                     <div>
                         <label className="block mb-2 font-medium">Nome:</label>
@@ -70,7 +110,7 @@ export default function UserModal({ user, isEdit, isOpen, onClose, onSave, onEna
                     </div>
                     <div>
                         <label className="block mb-2 font-medium">Nascimento:</label>
-                        <input type="text" value={birthDate} readOnly={!isEdit} onChange={(e) => setBirthDate(e.target.value)}
+                        <input type="date" value={formatDateForInput(birthDate)} readOnly={!isEdit} onChange={handleDateChange}
                             className="w-full rounded-md p-2.5 border border-gray-300 focus:outline-none" />
                     </div>
                     <div>
@@ -78,6 +118,13 @@ export default function UserModal({ user, isEdit, isOpen, onClose, onSave, onEna
                         <input type="text" value={nationalId} readOnly={!isEdit} onChange={(e) => setNationalId(e.target.value)}
                             className="w-full rounded-md p-2.5 border border-gray-300 focus:outline-none" />
                     </div>
+                    {!user && (
+                        <div>
+                            <label className="block mb-2 font-medium">Senha:</label>
+                            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                                className="w-full rounded-md p-2.5 border border-gray-300 focus:outline-none" />
+                        </div>
+                    )}
                 </div>
 
                 <div className="text-end space-x-4 mt-4">
@@ -89,9 +136,14 @@ export default function UserModal({ user, isEdit, isOpen, onClose, onSave, onEna
                             Editar
                         </button>
                     )}
-                    {isEdit && (
+                    {isEdit && user && (
                         <button className="bg-blue-600 text-white px-4 py-2 rounded" onClick={handleSave}>
                             Salvar
+                        </button>
+                    )}
+                    {!user && (
+                        <button className="bg-blue-600 text-white px-4 py-2 rounded" onClick={handleCreate}>
+                            Cadastrar
                         </button>
                     )}
                 </div>
