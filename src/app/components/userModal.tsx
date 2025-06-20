@@ -23,7 +23,6 @@ export default function UserModal({ user = null, isEdit = true, isOpen, onClose,
     const { createUser, createUserLoading } = useUsers();
     const { handleSaveUser } = useUsers();
 
-
     useEffect(() => {
         if (isOpen && !user) {
             // Cadastro novo: limpa campos

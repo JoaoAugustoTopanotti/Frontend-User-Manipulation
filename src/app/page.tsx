@@ -17,6 +17,7 @@ export default function Home() {
       // Guarda no localStorage a porra do token e do ID
       localStorage.setItem('token', data);
       localStorage.setItem('updatedById', userIdSystem);
+      localStorage.setItem('deletedById', userIdSystem)
 
       // Redireciona usando o router do lado do cliente
       router.push("/users/list");

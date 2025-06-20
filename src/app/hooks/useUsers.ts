@@ -68,7 +68,28 @@ export const useUsers = () => {
             throw err;
         }
     };
+    const handleDeleteUser = async (userId: string) => {
+        if (!userId) return;
 
+        try {
+            const token = localStorage.getItem('token');
+            const deletedById = localStorage.getItem('deletedById');
+
+            const response = await http.delete(`/users/delete/${userId}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    token: token ?? '',
+                    deletedById: deletedById ?? ''
+                }
+            });
+            console.log("Usuário atualizado:", response.data);
+            return response.data;
+        }
+        catch (err: any) {
+            console.error("Erro ao atualizar:", err);
+            throw err;
+        };
+    };
     return {
         users,
         isLoading,
@@ -77,5 +98,6 @@ export const useUsers = () => {
         createUser: createUserMutation.mutateAsync,
         createUserLoading: createUserMutation.status === "pending",
         handleSaveUser, // exporta a função de update também
+        handleDeleteUser,
     };
 };

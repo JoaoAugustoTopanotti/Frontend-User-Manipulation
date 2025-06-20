@@ -7,4 +7,5 @@ export interface IUser  {
   nationalId?: string;
   password?: string; // só será usado no cadastro
   token?: string;    // só será usado no cadastro
+  isDeleted?: boolean;
 }

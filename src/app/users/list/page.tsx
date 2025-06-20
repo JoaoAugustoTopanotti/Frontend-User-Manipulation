@@ -6,9 +6,12 @@ import { MdModeEdit } from "react-icons/md";
 import { MdDelete } from "react-icons/md";
 import { useEffect, useState } from "react";
 import UserModal from "@/app/components/userModal";
+import UserDeleteModal from "@/app/components/userDeleteModal";
+import DeleteModal from "@/app/components/userDeleteModal";
 
-function ListUsers({ users, onOpenModal }: { users: IUser[], onOpenModal: (user: IUser, editMode: boolean) => void; }) {
-
+function ListUsers({ users, onOpenModal, onDeleteModal }: { users: IUser[], onOpenModal: (user: IUser, editMode: boolean) => void; onDeleteModal: (userId: string | undefined) => void }) {
+  console.log("oi")
+  console.log(users);
   return (
     <>
       <div className="w-full flex justify-center items-start h-full">
@@ -25,26 +28,32 @@ function ListUsers({ users, onOpenModal }: { users: IUser[], onOpenModal: (user:
               </tr>
             </thead>
             <tbody className="w-full">
-              {users.map(user => (
-                <tr className="cursor-pointer" key={user.id} onClick={() => onOpenModal(user, false)}>
-                  <td className="px-2 py-3">{user.name}</td>
-                  <td className="px-2 py-3">{user.email}</td>
-                  <td className="px-2 py-3">{user.birthDate}</td>
-                  <td className="px-2 py-3">{user.contact}</td>
-                  <td className="px-2 py-3">{user.nationalId}</td>
-                  <td className="py-3 flex justify-start">
-                    <button className="cursor-pointer" onClick={(e) => {
-                      e.stopPropagation();
-                      onOpenModal(user, true);
-                    }}>
-                      <MdModeEdit size="30" />
-                    </button>
-                    <button>
-                      <MdDelete size="30" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {users
+                .filter(user => user.name !== "System")
+                .filter(user => user.isDeleted === false)
+                .map(user => (
+                  <tr className="cursor-pointer" key={user.id} onClick={() => onOpenModal(user, false)}>
+                    <td className="px-2 py-3">{user.name}</td>
+                    <td className="px-2 py-3">{user.email}</td>
+                    <td className="px-2 py-3">{user.birthDate}</td>
+                    <td className="px-2 py-3">{user.contact}</td>
+                    <td className="px-2 py-3">{user.nationalId}</td>
+                    <td className="py-3 flex justify-start">
+                      <button className="cursor-pointer" onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenModal(user, true);
+                      }}>
+                        <MdModeEdit size="30" />
+                      </button>
+                      <button className="cursor-pointer" onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteModal(user.id)
+                      }}>
+                        <MdDelete size="30" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
@@ -55,9 +64,12 @@ function ListUsers({ users, onOpenModal }: { users: IUser[], onOpenModal: (user:
 
 function UsersListWrapper() {
   const { users, isLoading, error, refetch } = useUsers();
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalDeleteOpen, setIsModalDeleteOpen] = useState(false)
   const [isEdit, setIsEdit] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<IUser | null>(null)
+  const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
+  const [selectedIdUser, setSelectedIdUser] = useState<string | undefined>(undefined)
+
 
   const handleOpenModal = (user: IUser | null, editMode: boolean) => {
     setSelectedUser(user);
@@ -65,9 +77,16 @@ function UsersListWrapper() {
     setIsModalOpen(true);
   };
 
+  const handleDeleteModal = (userId: string | undefined) => {
+    setSelectedIdUser(userId);
+    setIsModalDeleteOpen(true);
+  }
+
   const handleCloseModal = () => {
     setSelectedUser(null);
     setIsModalOpen(false);
+    setSelectedIdUser("");
+    setIsModalDeleteOpen(false)
   };
 
   const { handleSaveUser } = useUsers();
@@ -103,9 +122,15 @@ function UsersListWrapper() {
           onSave={handleSave}
           onEnableEdit={handleEdit}
         />
+        <DeleteModal
+          userId={selectedIdUser}
+          isOpen={isModalDeleteOpen}
+          onClose={handleCloseModal}
+        />
       </div>
       <ListUsers users={users ?? []}
         onOpenModal={handleOpenModal}
+        onDeleteModal={handleDeleteModal}
       />
 
     </>
