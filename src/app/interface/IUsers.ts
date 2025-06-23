@@ -9,3 +9,13 @@ export interface IUser  {
   token?: string;    // só será usado no cadastro
   isDeleted?: boolean;
 }
+
+export interface GetUsersParams {
+  page: number;
+  take: number;
+  search?: string;
+  orderBy?: {
+    field: string;
+    direction: 'asc' | 'desc';
+  };
+}

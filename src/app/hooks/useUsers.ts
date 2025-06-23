@@ -2,27 +2,45 @@
 "use client";
 
 import { http } from "@/lib/http-common";
-import { IUser } from "../interface/IUsers";
+import { GetUsersParams, IUser } from "../interface/IUsers";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { AxiosResponse } from "axios";
+import { useState } from "react";
+import { UseUsersOptions } from "../interface/IUseUsersOptions";
 
-export const useUsers = () => {
-    const getUsers = async (): Promise<IUser[]> => {
-        const response = await http.get('/users/list?page=1&take=10&search=&orderBy[field]=&orderBy[direction]=desc');
-        return response.data?.users?.data ?? [];
+// const getUsers = async (params: GetUsersParams): Promise<IUser[]> => {
+//     const response = await http.get('/users/list', {
+//         params: {
+//             page: params.page,
+//             take: params.take,
+//             search: params.search ?? '',
+//             'orderBy[field]': params.orderBy?.field ?? 'name',
+//             'orderBy[direction]': params.orderBy?.direction ?? 'asc',
+//         },
+//     });
+//     return response.data?.users?.data ?? [];
+// };
+
+export const useUsers = ({ page = 1, take = 5 }: UseUsersOptions = {}) => {
+    const getUsers = async ({ queryKey }: { queryKey: any }): Promise<{ users: IUser[]; total: number; totalPages: number }> => {
+        const [_key, page, take] = queryKey;
+        const response = await http.get(`/users/list?page=${page}&take=${take}&search=&orderBy[field]=&orderBy[direction]=desc`);
+        return {
+            users: response.data?.users?.data ?? [],
+            total: response.data?.users?.total ?? 0,
+            totalPages: response.data?.users?.totalPages ?? 1,
+        };
     };
-
     const {
-        data: users,
+        data,
         isLoading,
         error,
         refetch,
-    } = useQuery<IUser[], Error>({
-        queryKey: ['users'],
+    } = useQuery<{ users: IUser[]; total: number; totalPages: number }, Error>({
+        queryKey: ['users', page, take],
         queryFn: getUsers,
     });
-
     const updatedById = localStorage.getItem('updatedById');
 
     const createUserMutation = useMutation<AxiosResponse<any>, Error, IUser>({
@@ -50,8 +68,15 @@ export const useUsers = () => {
         if (!userId) return;
 
         try {
-            const token = localStorage.getItem('token');
-            const updatedById = localStorage.getItem('updatedById');
+            let token = '';
+            if (typeof window !== 'undefined') {
+                token = localStorage.getItem("token") ?? '';
+            }
+
+            let updatedById = '';
+            if (typeof window !== 'undefined') {
+                updatedById = localStorage.getItem("updatedById") ?? '';
+            }
 
             const response = await http.put(`/users/update/${userId}`, updatedUser, {
                 headers: {
@@ -72,8 +97,15 @@ export const useUsers = () => {
         if (!userId) return;
 
         try {
-            const token = localStorage.getItem('token');
-            const deletedById = localStorage.getItem('deletedById');
+            let token = '';
+            if (typeof window !== 'undefined') {
+                token = localStorage.getItem("token") ?? '';
+            }
+
+            let deletedById = '';
+            if (typeof window !== 'undefined') {
+                deletedById = localStorage.getItem("deletedById") ?? '';
+            }
 
             const response = await http.delete(`/users/delete/${userId}`, {
                 headers: {
@@ -83,6 +115,7 @@ export const useUsers = () => {
                 }
             });
             console.log("Usuário atualizado:", response.data);
+            await refetch();
             return response.data;
         }
         catch (err: any) {
@@ -91,7 +124,9 @@ export const useUsers = () => {
         };
     };
     return {
-        users,
+        users: data?.users ?? [],
+        total: data?.total ?? 0,
+        totalPages: data?.totalPages ?? 1,
         isLoading,
         error,
         refetch,

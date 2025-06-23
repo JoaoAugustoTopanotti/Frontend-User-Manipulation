@@ -8,13 +8,16 @@ import { useEffect, useState } from "react";
 import UserModal from "@/app/components/userModal";
 import UserDeleteModal from "@/app/components/userDeleteModal";
 import DeleteModal from "@/app/components/userDeleteModal";
+import { MdChevronLeft } from "react-icons/md";
+import { MdChevronRight } from "react-icons/md";
+
 
 function ListUsers({ users, onOpenModal, onDeleteModal }: { users: IUser[], onOpenModal: (user: IUser, editMode: boolean) => void; onDeleteModal: (userId: string | undefined) => void }) {
   console.log("oi")
   console.log(users);
   return (
     <>
-      <div className="w-full flex justify-center items-start h-full">
+      <div className="w-full flex justify-center items-start h-max[600px]">
         <div className="w-5/6 max-h-[600px] overflow-hidden border border-[var(--color-sidebarBorderColor)] shadow-md">
           <table className="w-full table-auto">
             <thead className="bg-[var(--color-theadColor)] text-left">
@@ -29,8 +32,6 @@ function ListUsers({ users, onOpenModal, onDeleteModal }: { users: IUser[], onOp
             </thead>
             <tbody className="w-full">
               {users
-                .filter(user => user.name !== "System")
-                .filter(user => user.isDeleted === false)
                 .map(user => (
                   <tr className="cursor-pointer" key={user.id} onClick={() => onOpenModal(user, false)}>
                     <td className="px-2 py-3">{user.name}</td>
@@ -63,13 +64,15 @@ function ListUsers({ users, onOpenModal, onDeleteModal }: { users: IUser[], onOp
 }
 
 function UsersListWrapper() {
-  const { users, isLoading, error, refetch } = useUsers();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalDeleteOpen, setIsModalDeleteOpen] = useState(false)
   const [isEdit, setIsEdit] = useState(false);
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
   const [selectedIdUser, setSelectedIdUser] = useState<string | undefined>(undefined)
-
+  const [page, setPage] = useState(1);
+  const [take, setTake] = useState(10);
+  const { users, totalPages = 1, isLoading, error, refetch } = useUsers({ page, take });
+  console.log("Users: ", users)
 
   const handleOpenModal = (user: IUser | null, editMode: boolean) => {
     setSelectedUser(user);
@@ -77,7 +80,7 @@ function UsersListWrapper() {
     setIsModalOpen(true);
   };
 
-  const handleDeleteModal = (userId: string | undefined) => {
+  const handleDeleteModal = async (userId: string | undefined) => {
     setSelectedIdUser(userId);
     setIsModalDeleteOpen(true);
   }
@@ -108,12 +111,16 @@ function UsersListWrapper() {
   if (isLoading) return <p>Carregando...</p>;
   if (error) return <p>Erro: {error.message}</p>;
 
+  console.log("AAAA", { page, take, totalPages, users });
+
   return (
     <>
       <div className="h-1/12 w-9/10 items-top flex justify-end">
         <button className="h-1/2 w-1/7 bg-[var(--color-buttomColor)] rounded-lg text-white font-medium" onClick={() => handleOpenModal(null, true)}>
           Cadastrar Usuário
         </button>
+        <div className='flex flex-col md:flex-row md:justify-between mt-4 font-medium text-sm gap-4 items-center'>
+        </div>
         <UserModal
           user={selectedUser}
           isEdit={isEdit}
@@ -132,9 +139,53 @@ function UsersListWrapper() {
         onOpenModal={handleOpenModal}
         onDeleteModal={handleDeleteModal}
       />
+      <div className="w-full flex justify-center">
+        <div className="flex flex-col md:flex-row justify-between items-center mt-4 w-5/6 text-sm p-4">
+
+          {/* Mostrar */}
+          <div className="flex items-center justify-start gap-2 w-full md:w-auto">
+            <label htmlFor="take">Mostrar:</label>
+            <select
+              id="take"
+              value={take}
+              onChange={(e) => {
+                setTake(Number(e.target.value));
+                setPage(1); // volta pra primeira página ao mudar o tamanho
+              }}
+              className="border p-1 rounded"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+
+          {/* Paginação */}
+          <div className="flex items-center justify-center gap-4 w-full mt-4 md:mt-0 mx-auto">
+            <button
+              className="px-2 py-1 bg-gray-300 rounded disabled:opacity-50"
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              disabled={page === 1}
+            >
+              Anterior
+            </button>
+            <span>Página {page} de {totalPages}</span>
+            <button
+              className="px-2 py-1 bg-gray-300 rounded disabled:opacity-50"
+              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={page === totalPages}
+            >
+              Próxima
+            </button>
+          </div>
+
+        </div>
+      </div>
 
     </>
   );
 }
+
 
 export default UsersListWrapper
