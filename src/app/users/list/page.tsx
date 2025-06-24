@@ -4,8 +4,9 @@ import { useUsers } from "@/app/hooks/useUsers";
 import { IUser } from "@/app/interface/IUsers";
 import { MdModeEdit } from "react-icons/md";
 import { MdDelete } from "react-icons/md";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import UserModal from "@/app/components/userModal";
+import debounce from 'lodash.debounce';
 import UserDeleteModal from "@/app/components/userDeleteModal";
 import DeleteModal from "@/app/components/userDeleteModal";
 import { MdChevronLeft } from "react-icons/md";
@@ -71,8 +72,43 @@ function UsersListWrapper() {
   const [selectedIdUser, setSelectedIdUser] = useState<string | undefined>(undefined)
   const [page, setPage] = useState(1);
   const [take, setTake] = useState(10);
-  const { users, totalPages = 1, isLoading, error, refetch } = useUsers({ page, take });
+  const [pageInput, setPageInput] = useState<string | number>(page);
+  const [searchRaw, setSearchRaw] = useState("");
+  const [search, setSearch] = useState("");
+  const [isEditingPage, setIsEditingPage] = useState(false);
+  const { users, totalPages = 1, isLoading, error, refetch } = useUsers({ page, take, search });
   console.log("Users: ", users)
+
+  const debouncedSearch = useMemo(() => debounce((value: string) => {
+    setSearch(value);
+    setPage(1); // resetar para a primeira página ao mudar busca
+  }, 1200), []);
+
+  useEffect(() => {
+    debouncedSearch(searchRaw);
+    return () => {
+      debouncedSearch.cancel(); // evita vazamentos
+    };
+  }, [searchRaw]);
+
+  useEffect(() => {
+    setPageInput(page);
+  }, [page]);
+
+  const handlePageChange = () => {
+    const number = Number(pageInput);
+
+    if (isNaN(number) || number < 1) {
+      setPage(1);
+      setPageInput(1);
+      return;
+    }
+
+    const sanitized = Math.min(number, totalPages);
+
+    setPage(sanitized);
+    setPageInput(sanitized);
+  };
 
   const handleOpenModal = (user: IUser | null, editMode: boolean) => {
     setSelectedUser(user);
@@ -115,74 +151,110 @@ function UsersListWrapper() {
 
   return (
     <>
-      <div className="h-1/12 w-9/10 items-top flex justify-end">
-        <button className="h-1/2 w-1/7 bg-[var(--color-buttomColor)] rounded-lg text-white font-medium" onClick={() => handleOpenModal(null, true)}>
-          Cadastrar Usuário
-        </button>
-        <div className='flex flex-col md:flex-row md:justify-between mt-4 font-medium text-sm gap-4 items-center'>
+      <div className="flex justify-center h-1/12 w-full">
+        <div className="w-5/6 flex items-center justify-between font-medium text-sm gap-4">
+          <input
+            type="text"
+            placeholder="Pesquisar usuário..."
+            value={searchRaw}
+            onChange={(e) => setSearchRaw(e.target.value)}
+            className="p-2 border border-gray-300 focus:outline-none rounded w-64 mx-auto"
+          />
+          <button
+            className="h-10 px-4 bg-[var(--color-buttomColor)] rounded-lg text-white font-medium"
+            onClick={() => handleOpenModal(null, true)}
+          >
+            Cadastrar Usuário
+          </button>
+          <UserModal
+            user={selectedUser}
+            isEdit={isEdit}
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            onSave={handleSave}
+            onEnableEdit={handleEdit}
+          />
+          <DeleteModal
+            userId={selectedIdUser}
+            isOpen={isModalDeleteOpen}
+            onClose={handleCloseModal}
+          />
         </div>
-        <UserModal
-          user={selectedUser}
-          isEdit={isEdit}
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          onSave={handleSave}
-          onEnableEdit={handleEdit}
-        />
-        <DeleteModal
-          userId={selectedIdUser}
-          isOpen={isModalDeleteOpen}
-          onClose={handleCloseModal}
-        />
       </div>
       <ListUsers users={users ?? []}
         onOpenModal={handleOpenModal}
         onDeleteModal={handleDeleteModal}
       />
       <div className="w-full flex justify-center">
-        <div className="flex flex-col md:flex-row justify-between items-center mt-4 w-5/6 text-sm p-4">
-
+        <div className="flex flex-col md:flex-row justify-between items-center w-5/6 text-sm p-4">
           {/* Mostrar */}
-          <div className="flex items-center justify-start gap-2 w-full md:w-auto">
-            <label htmlFor="take">Mostrar:</label>
-            <select
-              id="take"
-              value={take}
-              onChange={(e) => {
-                setTake(Number(e.target.value));
-                setPage(1); // volta pra primeira página ao mudar o tamanho
-              }}
-              className="border p-1 rounded"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-          </div>
+          <div className="w-full flex items-center justify-between gap-4 ">
+            <label htmlFor="take" className="block">
+              Mostrar:
+              <select
+                id="take"
+                value={take}
+                onChange={(e) => {
+                  setTake(Number(e.target.value));
+                  setPage(1); // volta pra primeira página ao mudar o tamanho
+                }}
+                className="mt-1 w-full max-w-[120px] rounded-md border border-gray-300 bg-white py-2 px-3 text-sm text-gray-700 shadow-sm  focus:outline-none focus:ring-1"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </label>
 
-          {/* Paginação */}
-          <div className="flex items-center justify-center gap-4 w-full mt-4 md:mt-0 mx-auto">
-            <button
-              className="px-2 py-1 bg-gray-300 rounded disabled:opacity-50"
-              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-              disabled={page === 1}
-            >
-              Anterior
-            </button>
-            <span>Página {page} de {totalPages}</span>
-            <button
-              className="px-2 py-1 bg-gray-300 rounded disabled:opacity-50"
-              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={page === totalPages}
-            >
-              Próxima
-            </button>
+            {/* Paginação */}
+            <div className="flex items-center justify-center gap-4 w-full mt-4 md:mt-0 mx-auto">
+              <button
+                className="px-2 py-1 bg-gray-300 rounded disabled:opacity-50"
+                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                disabled={page === 1}
+              >
+                Anterior
+              </button>
+              <button
+                className="px-2 py-1 bg-gray-300 rounded disabled:opacity-50"
+                onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={page === totalPages}
+              >
+                Próxima
+              </button>
+            </div>
+            <div className="justify-end w-1/7">
+              Página
+              <input
+                type="number"
+                value={pageInput}
+                onFocus={() => setIsEditingPage(true)}
+                onBlur={() => {
+                  setIsEditingPage(false);
+                  handlePageChange();
+                }}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (/^\d*$/.test(val)) {
+                    setPageInput(val);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setIsEditingPage(false);
+                    handlePageChange();
+                  }
+                }}
+                className="w-7 border border-gray-300 rounded text-center focus:outline-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                min={1}
+                max={totalPages}
+              />
+              de {totalPages}
+            </div>
           </div>
-
         </div>
       </div>
-
     </>
   );
 }

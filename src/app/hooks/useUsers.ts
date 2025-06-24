@@ -9,36 +9,24 @@ import { AxiosResponse } from "axios";
 import { useState } from "react";
 import { UseUsersOptions } from "../interface/IUseUsersOptions";
 
-// const getUsers = async (params: GetUsersParams): Promise<IUser[]> => {
-//     const response = await http.get('/users/list', {
-//         params: {
-//             page: params.page,
-//             take: params.take,
-//             search: params.search ?? '',
-//             'orderBy[field]': params.orderBy?.field ?? 'name',
-//             'orderBy[direction]': params.orderBy?.direction ?? 'asc',
-//         },
-//     });
-//     return response.data?.users?.data ?? [];
-// };
-
-export const useUsers = ({ page = 1, take = 5 }: UseUsersOptions = {}) => {
-    const getUsers = async ({ queryKey }: { queryKey: any }): Promise<{ users: IUser[]; total: number; totalPages: number }> => {
-        const [_key, page, take] = queryKey;
-        const response = await http.get(`/users/list?page=${page}&take=${take}&search=&orderBy[field]=&orderBy[direction]=desc`);
+const getUsers = async ({ queryKey }: { queryKey: any }): Promise<{ users: IUser[]; total: number; totalPages: number }> => {
+        const [_key, page, take, search] = queryKey;
+        const response = await http.get(`/users/list?page=${page}&take=${take}&search=${search}&orderBy[field]=&orderBy[direction]=desc`);
         return {
             users: response.data?.users?.data ?? [],
             total: response.data?.users?.total ?? 0,
             totalPages: response.data?.users?.totalPages ?? 1,
         };
     };
+
+export const useUsers = ({ page = 1, take = 5, search = "" }: UseUsersOptions = {}) => {
     const {
         data,
         isLoading,
         error,
         refetch,
     } = useQuery<{ users: IUser[]; total: number; totalPages: number }, Error>({
-        queryKey: ['users', page, take],
+        queryKey: ['users', page, take, search],
         queryFn: getUsers,
     });
     const updatedById = localStorage.getItem('updatedById');
