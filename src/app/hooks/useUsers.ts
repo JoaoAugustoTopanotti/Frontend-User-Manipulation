@@ -10,23 +10,23 @@ import { useState } from "react";
 import { UseUsersOptions } from "../interface/IUseUsersOptions";
 
 const getUsers = async ({ queryKey }: { queryKey: any }): Promise<{ users: IUser[]; total: number; totalPages: number }> => {
-        const [_key, page, take, search] = queryKey;
-        const response = await http.get(`/users/list?page=${page}&take=${take}&search=${search}&orderBy[field]=&orderBy[direction]=desc`);
-        return {
-            users: response.data?.users?.data ?? [],
-            total: response.data?.users?.total ?? 0,
-            totalPages: response.data?.users?.totalPages ?? 1,
-        };
+    const [_key, page, take, search, orderByField, orderByDirection] = queryKey;
+    const response = await http.get(`/users/list?page=${page}&take=${take}&search=${search}&orderBy[field]=${orderByField}&orderBy[direction]=${orderByDirection}`);
+    return {
+        users: response.data?.users?.data ?? [],
+        total: response.data?.users?.total ?? 0,
+        totalPages: response.data?.users?.totalPages ?? 1,
     };
+};
 
-export const useUsers = ({ page = 1, take = 5, search = "" }: UseUsersOptions = {}) => {
+export const useUsers = ({ page = 1, take = 5, search = "", orderByField = "", orderByDirection = "desc" }: UseUsersOptions = {}) => {
     const {
         data,
         isLoading,
         error,
         refetch,
     } = useQuery<{ users: IUser[]; total: number; totalPages: number }, Error>({
-        queryKey: ['users', page, take, search],
+        queryKey: ['users', page, take, search, orderByField, orderByDirection],
         queryFn: getUsers,
     });
     const updatedById = localStorage.getItem('updatedById');

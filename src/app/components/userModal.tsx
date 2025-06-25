@@ -42,7 +42,6 @@ export default function UserModal({ user = null, isEdit = true, isOpen, onClose,
         }
     }, [isOpen, user]);
 
-
     if (!isOpen) return null;
 
     const formatDateForInput = (isoString: string) => {
@@ -65,7 +64,6 @@ export default function UserModal({ user = null, isEdit = true, isOpen, onClose,
             birthDate,
             nationalId,
         };
-        console.log("Updated User: ", updatedUser)
         onSave(updatedUser);
         onClose()
     };
