@@ -43,7 +43,7 @@ function ListUsers({ users, onOpenModal, onDeleteModal, setOrderByField, setOrde
                     </button>
                   </div>
                 </th>
-                <th className="px-4 py-3 w-1/11">
+                <th className="px-4 py-3 w-2/11">
                   <div className="flex items-center gap-1">
                     Telefone
                     <button className="p-1 cursor-pointer" onClick={() => {setOrderByField("contact"), setOrderByDirection((prev: 'asc' | 'desc') => (prev === 'desc' ? 'asc' : 'desc'))}}>
@@ -72,7 +72,7 @@ function ListUsers({ users, onOpenModal, onDeleteModal, setOrderByField, setOrde
                       </td>
                       <td className="px-4 py-3 w-2/6">{user.email}</td>
                       <td className="px-4 py-3 w-1/6">
-                        {user.birthDate}
+                        {new Date(user.birthDate).toLocaleDateString('pt-BR')}
                       </td>
                       <td className="px-4 py-3 w-1/6">
                         {user.contact}
@@ -83,10 +83,10 @@ function ListUsers({ users, onOpenModal, onDeleteModal, setOrderByField, setOrde
                       <td className="px-4 py-3 w-1/6 flex gap-1">
 
                         <button onClick={(e) => { e.stopPropagation(); onOpenModal(user, true); }}>
-                          <MdModeEdit size={30} />
+                          <MdModeEdit size={30} className="cursor-pointer" />
                         </button>
                         <button onClick={(e) => { e.stopPropagation(); onDeleteModal(user.id); }}>
-                          <MdDelete size={30} />
+                          <MdDelete size={30} className="cursor-pointer"/>
                         </button>
                       </td>
                     </tr>
@@ -245,7 +245,7 @@ function UsersListWrapper() {
                   setTake(Number(e.target.value));
                   setPage(1); // volta pra primeira página ao mudar o tamanho
                 }}
-                className="mt-1 w-full max-w-[160px] rounded-md border border-gray-300 bg-white py-1 px-6 text-sm text-gray-700 shadow-sm  focus:outline-none focus:ring-1"
+                className="mt-1 w-full max-w-[160px] rounded-md border border-gray-300 bg-white py-1 px-6 text-sm text-gray-700 shadow-sm  focus:outline-none focus:ring-1 cursor-pointer"
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>
@@ -257,14 +257,14 @@ function UsersListWrapper() {
             {/* Paginação */}
             <div className="flex items-center justify-center gap-4 w-full mt-4 md:mt-0 mx-auto">
               <button
-                className="px-2 py-1 bg-gray-300 rounded disabled:opacity-50"
+                className="px-2 py-1 bg-gray-300 rounded disabled:opacity-50 cursor-pointer"
                 onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
                 disabled={page === 1}
               >
                 Anterior
               </button>
               <button
-                className="px-2 py-1 bg-gray-300 rounded disabled:opacity-50"
+                className="px-2 py-1 bg-gray-300 rounded disabled:opacity-50 cursor-pointer"
                 onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
                 disabled={page === totalPages}
               >

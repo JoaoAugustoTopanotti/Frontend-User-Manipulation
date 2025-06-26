@@ -29,8 +29,8 @@ export default function DeleteModal({ userId, isOpen, onClose }: Props) {
                     </h2>
                 </div>
                 <div className="flex justify-center gap-16 mt-4 py-6">
-                    <button className="bg-[var(--color-theadColor)] font-medium px-17 py-2 rounded" onClick={onClose}>Não</button>
-                    <button className="bg-blue-600 text-white px-17 py-2 rounded" onClick={handleDelete}>Sim</button>
+                    <button className="bg-[var(--color-theadColor)] font-medium px-17 py-2 rounded cursor-pointer" onClick={onClose}>Voltar</button>
+                    <button className="bg-red-700 text-white px-17 py-2 rounded cursor-pointer" onClick={handleDelete}>Excluir</button>
                 </div>
             </div>
 
