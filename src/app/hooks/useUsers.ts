@@ -19,7 +19,7 @@ const getUsers = async ({ queryKey }: { queryKey: any }): Promise<{ users: IUser
     };
 };
 
-export const useUsers = ({ page = 1, take = 5, search = "", orderByField = "", orderByDirection = "desc" }: UseUsersOptions = {}) => {
+export const useUsers = ({ page = 1, take = 5, search = "", orderByField = "", orderByDirection = "" }: UseUsersOptions = {}) => {
     const {
         data,
         isLoading,
@@ -28,7 +28,8 @@ export const useUsers = ({ page = 1, take = 5, search = "", orderByField = "", o
     } = useQuery<{ users: IUser[]; total: number; totalPages: number }, Error>({
         queryKey: ['users', page, take, search, orderByField, orderByDirection],
         queryFn: getUsers,
-    });
+        placeholderData: (prevData) => prevData
+    }, );
     const updatedById = localStorage.getItem('updatedById');
 
     const createUserMutation = useMutation<AxiosResponse<any>, Error, IUser>({
@@ -73,8 +74,6 @@ export const useUsers = ({ page = 1, take = 5, search = "", orderByField = "", o
                     updatedById: updatedById ?? ''
                 }
             });
-
-            console.log("Usuário atualizado:", response.data);
             return response.data;
         } catch (err: any) {
             console.error("Erro ao atualizar:", err);
@@ -103,7 +102,6 @@ export const useUsers = ({ page = 1, take = 5, search = "", orderByField = "", o
                 }
             });
             console.log("Usuário atualizado:", response.data);
-            await refetch();
             return response.data;
         }
         catch (err: any) {

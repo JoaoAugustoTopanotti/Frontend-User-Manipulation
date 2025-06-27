@@ -5,19 +5,19 @@ interface Props {
     userId: string | undefined;
     isOpen: boolean;
     onClose: () => void;
+    onDeleteSuccess: () => void;
 }
 
-export default function DeleteModal({ userId, isOpen, onClose }: Props) {
+export default function DeleteModal({ userId, isOpen, onClose, onDeleteSuccess }: Props) {
     const { handleDeleteUser } = useUsers()
 
     if (!isOpen) return null;
-
-    console.log("Users", userId)
 
     const handleDelete = async () => {
         if (!userId) return
         await handleDeleteUser(userId)
         onClose();
+        onDeleteSuccess();
     }
 
     return (

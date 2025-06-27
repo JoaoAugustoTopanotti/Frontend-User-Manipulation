@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Controller } from "react-hook-form";
 import { InputMask } from './inputMask';
+import { validateCPF } from "../../lib/CPFValidator"
 
 interface Props {
     user: IUser | null;
@@ -21,13 +22,19 @@ interface Props {
 
 export default function UserModal({ user, isEdit = true, isOpen, onClose, onSave, onEnableEdit }: Props) {
     const User = z.object({
-        name: z.string().min(1, { message: 'Nome é obrigatório.' }),
-        email: z
+        name: z
             .string()
-            .email({ message: 'Endereço de e-mail inválido' })
-            .refine((val) => val.endsWith('@gmail.com'), {
-                message: 'O e-mail deve terminar com @gmail.com',
+            .min(1, { message: "Nome é obrigatório." })
+            .max(40, { message: "O nome pode ter no máximo 40 caracteres." })
+            .regex(/^[A-Za-zÀ-ÿ\s'-]+$/, {
+                message: "O nome deve conter apenas letras e espaços.",
+            })
+            .refine((val) => val[0] === val[0]?.toUpperCase(), {
+                message: "A primeira letra do nome deve ser maiúscula.",
             }),
+        email: z.string().email({ message: 'Endereço de e-mail inválido' }).refine((val) => val.endsWith('@gmail.com'), {
+            message: 'O e-mail deve terminar com @gmail.com',
+        }),
         contact: z.string().refine(value => {
             const digits = value.replace(/\D/g, '');
             return digits.length === 11;
@@ -35,15 +42,42 @@ export default function UserModal({ user, isEdit = true, isOpen, onClose, onSave
             message: 'O número de telefone deve ter 11 dígitos.',
         }),
         birthDate: z.string().min(1, { message: 'A data de nascimento é obrigatória.' }),
-        nationalId: z.string().refine(value => {
+        nationalId: z
+            .string()
+            .refine((value) => validateCPF(value), {
+                message: "CPF inválido.",
+            }),
+        password: z.string().min(1, { message: 'A senha é obrigatória' }),
+    });
+
+    const UserEdit = z.object({
+        name: z
+            .string()
+            .min(1, { message: "Nome é obrigatório." })
+            .max(40, { message: "O nome pode ter no máximo 40 caracteres." })
+            .regex(/^[A-Za-zÀ-ÿ\s'-]+$/, {
+                message: "O nome deve conter apenas letras e espaços.",
+            })
+            .refine((val) => val[0] === val[0]?.toUpperCase(), {
+                message: "A primeira letra do nome deve ser maiúscula.",
+            }),
+        email: z.string().email({ message: 'Endereço de e-mail inválido' }).refine((val) => val.endsWith('@gmail.com'), {
+            message: 'O e-mail deve terminar com @gmail.com',
+        }),
+        contact: z.string().refine(value => {
             const digits = value.replace(/\D/g, '');
             return digits.length === 11;
-        }, {message: 'O CPF deve ter 11 dígitos obrigatórios.',
+        }, {
+            message: 'O número de telefone deve ter 11 dígitos.',
         }),
-        password: z.string().min(1, { message: 'Senha é obrigatório.' })
-    })
-
-    type user = z.infer<typeof User>
+        birthDate: z.string().min(1, { message: 'A data de nascimento é obrigatória.' }),
+        nationalId: z
+            .string()
+            .refine((value) => validateCPF(value), {
+                message: "CPF inválido.",
+            }),
+        password: z.string().optional()
+    });
 
     const { createUser, createUserLoading } = useUsers();
     const { handleSaveUser } = useUsers();
@@ -61,19 +95,26 @@ export default function UserModal({ user, isEdit = true, isOpen, onClose, onSave
         }
     }, [user]);
 
+    type user = z.infer<typeof User>
+
+    const schema = user ? UserEdit : User;
+
+    type FormSchema = z.infer<typeof schema>;
+
     const {
         register,
         reset,
+        trigger,
         control,
         handleSubmit,
         formState: { errors },
-    } = useForm<user>({
-        resolver: zodResolver(User),
+    } = useForm<FormSchema>({
+        resolver: zodResolver(schema),
         defaultValues: {
             name: "",
             email: "",
             contact: "",
-            birthDate: "",
+            birthDate: new Date().toISOString(),
             nationalId: "",
             password: "",
         },
@@ -81,7 +122,6 @@ export default function UserModal({ user, isEdit = true, isOpen, onClose, onSave
 
     useEffect(() => {
         if (isOpen && !user) {
-            // Cadastro novo: limpa campos
             reset({
                 name: "",
                 email: "",
@@ -91,26 +131,34 @@ export default function UserModal({ user, isEdit = true, isOpen, onClose, onSave
                 password: "",
             });
         } else if (isOpen && user) {
-            // Edição: preenche campos com dados do usuário
             reset({
                 name: user.name || "",
                 email: user.email || "",
                 birthDate: user.birthDate || "",
                 contact: user.contact || "",
                 nationalId: user.nationalId || "",
-                password: "", // geralmente não traz a senha na edição
+                password: "",
             });
+        trigger();
         }
-    }, [isOpen, user, reset]);
+    }, [isOpen, user, reset, trigger]);
 
     if (!isOpen) return null;
 
-    const formatDateForInput = (isoString: string) => {
-        return isoString ? isoString.split('T')[0] : '';
+    const formatDateForInput = (dateISO: string | Date) => {
+        const date = new Date(dateISO);
+
+        // Ajusta para fuso local e formata yyyy-MM-dd
+        const offset = date.getTimezoneOffset() * 60000; // diferença em ms
+        const localDate = new Date(date.getTime() - offset);
+
+        return localDate.toISOString().split("T")[0];
     };
 
     const handleSave = handleSubmit(async (data) => {
+        console.log('Dados envios:');
         if (!user) return
+
         const updatedUser: IUser = {
             ...user,
             ...data
@@ -137,7 +185,7 @@ export default function UserModal({ user, isEdit = true, isOpen, onClose, onSave
                         <label className="block mb-2 font-medium">Nome:</label>
                         <input type="text" readOnly={!isEdit} {...register("name")}
                             className="w-full rounded-md p-2.5 border border-gray-300 focus:outline-none" />
-                        {errors.name && <p>{errors.name.message}</p>}
+                        {errors.name && <p className="text-red-500">{errors.name.message}</p>}
                     </div>
                     <div>
                         <label className="block mb-2 font-medium">Contato:</label>
@@ -147,17 +195,17 @@ export default function UserModal({ user, isEdit = true, isOpen, onClose, onSave
                             control={control}
                             readOnly={!isEdit}
                         />
-                        {errors.contact && <p>{errors.contact.message}</p>}
+                        {errors.contact && <p className="text-red-500">{errors.contact.message}</p>}
                     </div>
                     <div>
                         <label className="block mb-2 font-medium">Email:</label>
                         <input type="text" readOnly={!isEdit} className="w-full rounded-md p-2.5 border border-gray-300 focus:outline-none" {...register("email")} />
-                        {errors.email && <p>{errors.email.message}</p>}
+                        {errors.email && <p className="text-red-500">{errors.email.message}</p>}
                     </div>
                     <div>
                         <label className="block mb-2 font-medium">Nascimento:</label>
                         <Controller name="birthDate" control={control} render={({ field }) => (
-                            <input type="date" readOnly={!isEdit} value={formatDateForInput(field.value)} max={new Date().toISOString().split("T")[0]}// formata para input type="date"
+                            <input type="date" readOnly={!isEdit} max={new Date().toISOString().split("T")[0]} value={field.value ? formatDateForInput(field.value) : new Date().toISOString().split("T")[0]}
                                 onChange={(e) => {
                                     const dateOnly = e.target.value;
                                     const iso = new Date(dateOnly).toISOString(); // formata pro backend
@@ -167,7 +215,7 @@ export default function UserModal({ user, isEdit = true, isOpen, onClose, onSave
                             />
                         )}
                         />
-                        {errors.birthDate && <p>{errors.birthDate.message}</p>}
+                        {errors.birthDate && <p className="text-red-500">{errors.birthDate.message}</p>}
                     </div>
                     <div>
                         <label className="block mb-2 font-medium">CPF:</label>
@@ -177,14 +225,17 @@ export default function UserModal({ user, isEdit = true, isOpen, onClose, onSave
                             control={control}
                             readOnly={!isEdit}
                         />
-                        {errors.nationalId && <p>{errors.nationalId.message}</p>}
+                        {errors.nationalId && <p className="text-red-500">{errors.nationalId.message}</p>}
                     </div>
                     {!user && (
                         <div>
                             <label className="block mb-2 font-medium">Senha:</label>
-                            <input type="password" {...register("password")}
-                                className="w-full rounded-md p-2.5 border border-gray-300 focus:outline-none" />
-                            {errors.password && <p>{errors.password.message}</p>}
+                            <input
+                                type="password"
+                                {...register("password")}
+                                className="w-full rounded-md p-2.5 border border-gray-300 focus:outline-none"
+                            />
+                            {errors.password && <p className="text-red-500">{errors.password.message}</p>}
                         </div>
                     )}
                 </div>
@@ -198,12 +249,12 @@ export default function UserModal({ user, isEdit = true, isOpen, onClose, onSave
                         </button>
                     )}
                     {isEdit && user && (
-                        <button className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer" onClick={handleSave}>
+                        <button className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer" type="submit" onClick={handleSave}>
                             Salvar
                         </button>
                     )}
                     {!user && (
-                        <button className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer" onClick={handleCreate}>
+                        <button className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer" type="submit" onClick={handleCreate}>
                             Cadastrar
                         </button>
                     )}
