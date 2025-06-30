@@ -35,7 +35,7 @@ body {
 }
 
 @layer utilities {
-  .bg-be1 {
-    background-image: url('/imagens/be1.png')
+  .bg-Be1 {
+    background-image: url('/imagens/Be1.png')
   }
 }
