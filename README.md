@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Este é a versão **Frontend** do projeto **User-Manipulation**. Utiliza-se **Next** com **Tailwind** com backend separado para melhor manejo de dados.
 
-## Getting Started
+- [Next.js](https://nextjs.org/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
 
-First, run the development server:
+## Objetivo
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Este projeto serviu como parte do meu treinamento de estágio na empresa **BE1 Tecnologia**. Tendo como objetivo a criação de uma interface que permita o manipulamento por **CRUD** de usuários vindos de um banco de dados **PostGreeSQL** junto com **Prisma**.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Interface
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+![image](https://github.com/user-attachments/assets/6983cfab-495c-49d5-87c0-d400ffcf2f1b)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Os usuários são dispostos em uma tabela que permite o controlador gerencia-los por meio das operações básicas CRUD através de modais. Além disso, é possível pesquisar usuários pela search bar e controlar o limite de usuários por paginação, que chegam no Backend por **query.params**.
 
-## Learn More
+## Guia de Instalação
 
-To learn more about Next.js, take a look at the following resources:
+### 📌 Pré-requisitos
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Antes de iniciar o guia de instalação, precisa-se seguir primeiro o passo a passo da API do [Backend](https://github.com/JoaoAugustoTopanotti/Backend-User-Manipulation/blob/main/README.md)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 📌 Passos para Instalação
 
-## Deploy on Vercel
+#### Passo 1 - Clone o repositório
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+` https://github.com/JoaoAugustoTopanotti/Frontend-User-Manipulation.git ` <br> <br>
+` cd Frontend-User-Manipulation `
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+#### Passo 2 - Instale as dependências
+
+` yarn install `
+
+#### Passo 3 - Crie um arquivo .env.local na raiz do projeto com o seguinte conteúdo:
+
+` NEXT_PUBLIC_API_URL=http://localhost:3001 `
+
+#### Passo 5 - Rode o projeto
+
+` yarn dev `
