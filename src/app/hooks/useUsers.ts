@@ -101,7 +101,6 @@ export const useUsers = ({ page = 1, take = 5, search = "", orderByField = "", o
                     deletedById: deletedById ?? ''
                 }
             });
-            console.log("Usuário atualizado:", response.data);
             return response.data;
         }
         catch (err: any) {

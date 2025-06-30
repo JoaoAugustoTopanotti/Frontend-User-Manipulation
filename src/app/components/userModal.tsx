@@ -156,7 +156,6 @@ export default function UserModal({ user, isEdit = true, isOpen, onClose, onSave
     };
 
     const handleSave = handleSubmit(async (data) => {
-        console.log('Dados envios:');
         if (!user) return
 
         const updatedUser: IUser = {
@@ -169,7 +168,6 @@ export default function UserModal({ user, isEdit = true, isOpen, onClose, onSave
 
     const handleCreate = handleSubmit(async (data) => {
         const token = uuidv4();
-        console.log(token)
         await createUser({
             ...data,
             token,
