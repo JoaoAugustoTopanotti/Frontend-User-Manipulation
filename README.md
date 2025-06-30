@@ -6,7 +6,7 @@ Este é a versão **Frontend** do projeto **User-Manipulation**. Utiliza-se **Ne
 
 ## Objetivo
 
-Este projeto serviu como parte do meu treinamento de estágio na empresa **BE1 Tecnologia**. Tendo como objetivo a criação de uma interface que permita o manipulamento por **CRUD** de usuários vindos de um banco de dados **PostGreeSQL** junto com **Prisma**.
+Este projeto serviu como parte do meu treinamento de estágio na empresa **BE1 Tecnologia**. Tendo como objetivo a criação de uma interface que permita o manipulamento por **CRUD** de usuários vindos de um banco de dados **PostGreSQL** junto com **Prisma**.
 
 ## Interface
 
@@ -33,7 +33,7 @@ Antes de iniciar o guia de instalação, precisa-se seguir primeiro o passo a pa
 
 #### Passo 3 - Crie um arquivo .env.local na raiz do projeto com o seguinte conteúdo:
 
-` NEXT_PUBLIC_API_URL=http://localhost:3001 `
+` NEXT_PUBLIC_API_URL=http://APIdoBackend `
 
 #### Passo 5 - Rode o projeto
 
